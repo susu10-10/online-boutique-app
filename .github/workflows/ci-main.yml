@@ -88,6 +88,8 @@ jobs:
         uses: sigstore/cosign-installer@v4.1.0
 
       - name: Sign remote images
+        env:
+          COSIGN_EXPERIMENTAL: "1"
         run: |
           # Re-gather images to ensure they match exactly what is in remote registry
           IMAGES=$(docker images --format "{{.Repository}}:{{.Tag}}" | grep "$DOCR" | grep "$SHA_TAG")
