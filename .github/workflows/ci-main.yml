@@ -76,12 +76,12 @@ jobs:
             IS_FIRST_RUN=false
           done
 
-      - name: Push all images to DOCR registry
+      - name: Push all SHA-tagged images to DOCR registry
         run: |
           # push both 'latest' (if built) and the unique SHA tags
-          docker compose -f container-images/docker-compose.yml push
           docker images --format "{{.Repository}}:{{.Tag}}" | grep "$DOCR" | grep "$SHA_TAG" | while read -r img; do
-            docker push "$img"
+          echo "Pushing image: $img"
+          docker push "$img"
           done
 # uses the pat from doctl login to upload the signature, but uses oidc to generate the signature
       - name: Install Cosign
@@ -97,3 +97,45 @@ jobs:
           done
         env:
           COSIGN_PRIVATE_KEY: ${{ secrets.COSIGN_PRIVATE_KEY }}
+
+      - name: Checkout Infrastructure Repository
+        uses: actions/checkout@v7
+        with:
+          repository: susu10-10/online-boutique-doks-pf
+          token: ${{ secrets.INFRA_REPO_TOKEN }}
+          path: infra
+
+
+      - name: Update image tags
+        run: |
+          cd infra/apps/boutique
+
+          for SERVICE in \
+            frontend \
+            adservice \
+            cartservice \
+            checkoutservice \
+            emailservice \
+            paymentservice \
+            productcatalogservice \
+            recommendationservice \
+            shippingservice \
+            currencyservice
+          do
+            kustomize edit set image \
+            registry.digitalocean.com/idpreg/$SERVICE=registry.digitalocean.com/idpreg/$SERVICE:$SHA_TAG
+          done
+
+
+      - name: Commit infra changes
+        run: |
+          cd infra
+
+          git config user.name github-actions
+          git config user.email github-actions@github.com
+
+          git add apps/boutique/kustomization.yaml
+
+          git commit -m "Update images to $SHA_TAG" || exit 0
+
+          git push
