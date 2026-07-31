@@ -4,7 +4,7 @@ on:
   push:
     branches: [ main ]
     paths:
-      - 'src/*'
+      - 'src/**'
       - '.github/workflows/ci-main.yml'
       - 'container-images/docker-compose.yml'
   workflow_dispatch:
@@ -105,6 +105,10 @@ jobs:
           token: ${{ secrets.INFRA_REPO_TOKEN }}
           path: infra
 
+      - name: Install Kustomize
+        run: |
+          curl -s "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh" | bash
+          sudo mv kustomize /usr/local/bin/
 
       - name: Update image tags
         run: |
@@ -123,7 +127,7 @@ jobs:
             currencyservice
           do
             kustomize edit set image \
-            registry.digitalocean.com/idpreg/$SERVICE=registry.digitalocean.com/idpreg/$SERVICE:$SHA_TAG
+            registry.digitalocean.com/idpreg/$SERVICE:$SHA_TAG
           done
 
 
@@ -133,9 +137,6 @@ jobs:
 
           git config user.name github-actions
           git config user.email github-actions@github.com
-
           git add apps/boutique/kustomization.yaml
-
           git commit -m "Update images to $SHA_TAG" || exit 0
-
           git push
