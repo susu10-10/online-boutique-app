@@ -24,7 +24,7 @@ jobs:
         os: [ubuntu-22.04, ubuntu-24.04]
     steps:
     - uses: actions/checkout@v7
-    - uses: actions/setup-dotnet@v5
+    - uses: actions/setup-dotnet@v6
       env:
         DOTNET_INSTALL_DIR: "./.dotnet"
       with:
