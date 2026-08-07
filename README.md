@@ -1,24 +1,24 @@
 # Online Boutique: Application Repository
 
-A production-grade, **11-microservice e-commerce platform** with a fully automated, security-hardened CI/CD supply chain. This repository owns the **application source and the pipeline that ensures the container images deployed are a signed, immutable container images** then hands them to a GitOps platform (ArgoCD) for deployment, through the means of updating the kustomization file.
+An **11-microservice e-commerce platform** with a fully automated, security-hardened CI/CD pipeline. This repository holds the **application source and the pipeline** that produces signed, immutable container images, then hands them to a GitOps platform (ArgoCD) for deployment by updating the kustomization file.
 
 ```
 Developer push ──► Unit tests ──► Build ──► Trivy scan ──► Cosign sign ──► Push to DOCR ──► GitOps deploy
 ```
 
-> **This is the app half of a two-repo architecture.** The platform half lives in [`online-boutique-doks-pf`](https://github.com/susu10-10/online-boutique-doks-pf): Terraform-provisioned DOKS, ArgoCD GitOps, Kyverno policy enforcement (including verification of the signatures this pipeline creates).
+> **This is the app half of a two-repo architecture.** The platform half lives in [`online-boutique-doks-pf`](https://github.com/susu10-10/online-boutique-doks-pf): Terraform-provisioned DOKS, ArgoCD GitOps, and Kyverno policy enforcement, including verification of the signatures this pipeline creates.
 
 ---
 
 ## Highlights
 
 - **11 microservices, 5 languages** (Go, C#, Node.js, Python, Java) communicating over gRPC
-- **Immutable SHA tags** every image is traceable to the exact commit; `latest` is banned in production
-- **Scan → Sign → Push ordering** nothing signed until Trivy says it's clean; nothing pushed unsigned
-- **Cosign keypair signing** private key in CI secrets, public key embedded in the cluster's Kyverno policy
-- **PR security gate** Semgrep (OWASP), TruffleHog, Trivy FS, Hadolint, and unit tests must all pass before merge
-- **Hardened containers** non-root, read-only rootfs, all capabilities dropped, resource limits on every service
-- **Pure GitOps handoff** CI never touches the cluster; it writes one tag file, ArgoCD does the rest
+- **Immutable SHA tags.** Every image is traceable to the exact commit. `latest` is banned in production.
+- **Scan → Sign → Push ordering.** Nothing is signed until Trivy says it's clean. Nothing is pushed unsigned.
+- **Cosign keypair signing.** Private key in CI secrets; public key embedded in the cluster's Kyverno policy.
+- **PR security gate.** Semgrep (OWASP), TruffleHog, Trivy FS, Hadolint, and unit tests must all pass before merge.
+- **Hardened containers.** Non-root, read-only rootfs, all capabilities dropped, resource limits on every service.
+- **Pure GitOps handoff.** CI never touches the cluster. It writes one tag file; ArgoCD does the rest.
 
 ---
 
@@ -42,7 +42,7 @@ online-boutique-app/
 |----------|-------------------|
 | [Architecture](docs/architecture.md) | Two-repo GitOps design, service graph, tech stack |
 | [CI/CD Pipeline](docs/ci-cd-pipeline.md) | Every stage of the pipeline, command by command |
-| [Security](docs/security.md) | The full supply-chain story: PR gate → scan → sign → verify |
+| [Security](docs/security.md) | PR gate → scan → sign → verify |
 | [Services](docs/services.md) | All 11 microservices: language, port, dependencies |
 
 ## Technologies

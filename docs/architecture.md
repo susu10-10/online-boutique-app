@@ -1,13 +1,13 @@
 # Architecture Overview
 
-The system is built on a **two-repository GitOps model**
+The system is built on a **two-repository GitOps model**.
 
 ### Architecture Diagram
 
 ```mermaid
 flowchart TB
     subgraph AppRepo["online-boutique-app (this repo)"]
-        SRC["src/ — 11 microservices"]
+        SRC["src/ - 11 microservices"]
         WF["GitHub Actions<br/>test → build → scan → sign → push"]
     end
 
@@ -30,7 +30,7 @@ flowchart TB
     KYN -->|"verify signature against<br/>public key, then admit"| PODS
 ```
 
-**The link between the two repositories is a single file:** `apps/boutique/kustomization.yaml` in the infra repo, where the application CI writes the new image SHA. ArgoCD detects the change and reconciles the cluster.
+**The link between the two repositories is a single file:** `apps/boutique/kustomization.yaml` in the infra repo. Application CI writes the new image SHA there. ArgoCD detects the change and reconciles the cluster.
 
 ---
 
@@ -67,7 +67,7 @@ flowchart LR
     RE --> PC
 ```
 
-All internal communication is **gRPC** (except Redis TCP and the frontend's HTTP). Services resolve each other by DNS name inside the container network, no service discovery agent required.
+All internal communication is **gRPC**, except Redis (TCP) and the frontend (HTTP). Services resolve each other by DNS name inside the container network. No service discovery agent required.
 
 ---
 
@@ -111,7 +111,7 @@ These same security properties carry over to the Kubernetes manifests in the inf
 
 ## Why This Shape
 
-1. **A single build definition** (`docker-compose.yml`) builds every service with the same tooling and tagging scheme no per-service build drift.
+1. **A single build definition** (`docker-compose.yml`) builds every service with the same tooling and tagging scheme. No per-service build drift.
 2. **SHA-tagged immutable images** make every release reproducible: the tag embeds the exact commit.
-3. **Scan-then-sign-then-push ordering** guarantees that anything signed has already passed vulnerability gates the signature is a validity about the artifact's content, not just its origin.
-4. **The pipeline stops at the registry** deliberately: deployment strategy, rollback, and policy enforcement belong to the platform layer, which operates on the same immutable artifacts.
+3. **Scan-then-sign-then-push ordering** guarantees that anything signed has already passed the vulnerability gates. The signature attests to the artifact's content, not just its origin.
+4. **The pipeline stops at the registry** deliberately. Deployment strategy, rollback, and policy enforcement belong to the platform layer, which operates on the same immutable artifacts.

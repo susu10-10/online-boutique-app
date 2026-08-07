@@ -1,13 +1,13 @@
-# Online Boutique:  Application Repository
+# Online Boutique: Application Repository
 
-This repository contains the **source code and CI/CD pipeline** for a production-grade, 11-microservice e-commerce platform. It is the **application half** of a two-repository GitOps architecture:
+This repository contains the **source code and CI/CD pipeline** for an 11-microservice e-commerce platform. It is the **application half** of a two-repository GitOps architecture:
 
 | Repository | Role |
 |------------|------|
 | **online-boutique-app** (this repo) | Application source code, container images, CI/CD pipeline |
 | **online-boutique-doks-pf** | Infrastructure as Code (Terraform), GitOps (ArgoCD), Kubernetes platform |
 
-The two repositories are deliberately separated: **application engineers/Developers work here; Devops/platform engineers work there.** The only bridge between them is a fully automated pipeline that builds, tests, scans, signs, and publishes container images, and then hands the release off to GitOps, after updating `kustomization.yaml`.
+The two repositories are deliberately separated. Application developers work here; platform engineers work in the infra repo. The only bridge between them is the pipeline: it builds, tests, scans, signs, and publishes container images, then updates `kustomization.yaml` in the infra repo for GitOps to pick up.
 
 ---
 
@@ -36,7 +36,7 @@ flowchart LR
     H --> I[ArgoCD Deploys<br/>handled by infra repo]
 ```
 
-**CI ends at the registry.** Everything after deployment, verification, rollout is owned by the GitOps platform in the infrastructure repository. This is the core GitOps principle: *application code produces artifacts; the platform/GitOps decides how they run.*
+**CI ends at the registry.** Deployment, verification, and rollout are owned by the GitOps platform in the infrastructure repository. Application code produces artifacts; the platform decides how they run.
 
 ---
 
