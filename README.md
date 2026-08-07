@@ -1,6 +1,6 @@
 # Online Boutique: Application Repository
 
-A production-grade, **11-microservice e-commerce platform** with a fully automated, security-hardened CI/CD supply chain. This repository owns the **application source and the pipeline that turns code into signed, immutable container images** — then hands them to a GitOps platform (ArgoCD) for deployment.
+A production-grade, **11-microservice e-commerce platform** with a fully automated, security-hardened CI/CD supply chain. This repository owns the **application source and the pipeline that ensures the container images deployed are a signed, immutable container images** then hands them to a GitOps platform (ArgoCD) for deployment, through the means of updating the kustomization file.
 
 ```
 Developer push ──► Unit tests ──► Build ──► Trivy scan ──► Cosign sign ──► Push to DOCR ──► GitOps deploy
