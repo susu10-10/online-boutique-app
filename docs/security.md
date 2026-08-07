@@ -1,6 +1,6 @@
 # Security
 
-Security here is **defense in depth across the supply chain** from the PR to the pod that runs in production. Every layer assumes the layer before it could be compromised.
+Security is enforced in layers, from the PR to the pod in production. Every layer assumes the layer before it could be compromised.
 
 ```mermaid
 flowchart TB
@@ -32,7 +32,7 @@ flowchart TB
 
 ---
 
-## Layer 1:  Pull Request Gate
+## Layer 1: Pull Request Gate
 
 Every PR to `main` runs **two jobs** in parallel (`pr-checks.yml`):
 
@@ -40,14 +40,14 @@ Every PR to `main` runs **two jobs** in parallel (`pr-checks.yml`):
 
 - Go tests for `shippingservice` and `productcatalogservice` (`go test`)
 - C# tests for `cartservice` (`dotnet test`)
-- Run on both `ubuntu-22.04` and `ubuntu-24.04` (matrix) catches OS-specific breakage
+- Run on both `ubuntu-22.04` and `ubuntu-24.04` (matrix) to catch OS-specific breakage
 
 ### Security Scans (reusable `security-essential.yml`)
 
 | Tool | What it catches |
 |------|-----------------|
 | **Semgrep** (OWASP Top 10 rules) | Injection, XSS, path traversal, insecure deserialization in source |
-| **TruffleHog** (`--only-verified`) | Real secrets committed to the repo — API keys, tokens, passwords |
+| **TruffleHog** (`--only-verified`) | Real secrets committed to the repo: API keys, tokens, passwords |
 | **Trivy filesystem scan** | Vulnerable dependencies across all 11 services (HIGH/CRITICAL) |
 | **Hadolint** | Dockerfile anti-patterns: `latest` base images, missing pinning, `ADD` abuse |
 | **docker compose config** | Validates the compose file is well-formed |
@@ -58,7 +58,7 @@ Every PR to `main` runs **two jobs** in parallel (`pr-checks.yml`):
 
 ## Layer 2: Image Scanning (CI)
 
-Trivy image scan on every build: `HIGH` and `CRITICAL` vulnerabilities are reported for every service image before signing. This is the artifact-level check and it inspects the actual container filesystem, not just the source tree.
+Trivy scans every image after the build. `HIGH` and `CRITICAL` vulnerabilities are reported before signing. This is the artifact-level check: it inspects the actual container filesystem, not just the source tree.
 
 ---
 
@@ -78,7 +78,7 @@ The signature cryptographically binds three facts:
 2. **Integrity**: the image bytes have not been altered since signing
 3. **Scan status**: signing happens *after* Trivy, so a valid signature implies that the image passed the vulnerability gate
 
-**Why a keypair and not keyless?** Keyless signing relies on ephemeral OIDC tokens from the CI provider. DOCR does not natively integrate with GitHub OIDC for registry auth, so the pragmatic, provider-neutral choice is a dedicated signing keypair: private key in CI secrets, public key in the cluster policy. It is also fully self-contained, no external certificate transparency infrastructure is required to verify.
+**Why a keypair and not keyless?** Keyless signing relies on ephemeral OIDC tokens from the CI provider. DOCR does not natively integrate with GitHub OIDC for registry auth, so we use a dedicated signing keypair.
 
 ---
 
@@ -107,7 +107,7 @@ Every service image runs with the same hardening profile, defined in the build d
 | `capabilities.drop: [ALL]` | No Linux capabilities |
 | `fsGroup: 1000` | Volume ownership for non-root runtime |
 
-The app repo defines these; Kyverno's *require-* policy family enforces them on the cluster, so even a developer who "forgets" gets the pod rejected or flagged, not silently shipped.
+The app repo defines these; Kyverno's *require-* policy family enforces them at admission. A developer who "forgets" gets the pod rejected or flagged, not silently shipped.
 
 ---
 
@@ -118,4 +118,4 @@ Sign **after** scanning, verify **before** running:
 - If you sign first, a later scan could find a vulnerability in an already-trusted artifact
 - If you don't verify at admission, an attacker with registry write access could swap an image and the cluster would run it
 
-The chain `scan → sign → verify` makes each link depend on the previous one. That is the supply-chain security story end to end.
+The chain `scan → sign → verify` makes each link depend on the previous one.

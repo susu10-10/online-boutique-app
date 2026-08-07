@@ -1,6 +1,6 @@
 # CI/CD Pipeline
 
-The pipeline lives in `.github/workflows/ci-main.yml` and runs on every push to `main` (and on demand via `workflow_dispatch`). This workflow ends when the moment images are in the registry and the infra repo carries the new tag.
+The pipeline lives in `.github/workflows/ci-main.yml`. It runs on every push to `main` and on demand via `workflow_dispatch`. The workflow ends once images are in the registry and the infra repo carries the new tag.
 
 ```mermaid
 flowchart TD
@@ -36,7 +36,7 @@ on:
   workflow_dispatch:
 ```
 
-The pipeline only runs when something that affects the images changed: application source, the pipeline itself, or the build definition. Every run produces a fresh build — no caching of old artifacts.
+The pipeline runs only when something that affects the images changed: application source, the pipeline itself, or the build definition. Every run produces a fresh build. No caching of old artifacts.
 
 ### 2. Authenticate to the Registry
 
@@ -44,7 +44,7 @@ The pipeline only runs when something that affects the images changed: applicati
 doctl registry login
 ```
 
-Uses the `DIGITALOCEAN_TOKEN` GitHub secret (via `digitalocean/action-doctl`). No long-lived Docker credentials are stored the token is injected per-run and scoped to the registry.
+Uses the `DIGITALOCEAN_TOKEN` GitHub secret (via `digitalocean/action-doctl`). No long-lived Docker credentials are stored. The token is injected per-run and scoped to the registry.
 
 ### 3. Build All Images
 
@@ -52,7 +52,7 @@ Uses the `DIGITALOCEAN_TOKEN` GitHub secret (via `digitalocean/action-doctl`). N
 docker compose -f container-images/docker-compose.yml build
 ```
 
-A **single build definition** (`container-images/docker-compose.yml`) builds all 11 microservices. This guarantees the same tooling, the same base images, and the same build context for every service — no per-service build scripts to drift.
+A **single build definition** (`container-images/docker-compose.yml`) builds all 11 microservices. Every service gets the same tooling, base images, and build context. No per-service build scripts to drift.
 
 ### 4. Tag with the Commit SHA
 
@@ -65,7 +65,7 @@ docker tag <image>:latest <image>:$SHA_TAG
 
 - Every image is traceable to the exact commit that produced it
 - Re-runs produce identical, reproducible artifacts
-- Rollback is trivial, point the manifest at the previous SHA
+- Rollback is trivial: point the manifest at the previous SHA
 - Production policy (Kyverno `restrict-latest-tag`) **blocks** `latest` anyway
 
 ### 5. Scan with Trivy
@@ -74,7 +74,7 @@ docker tag <image>:latest <image>:$SHA_TAG
 trivy image --severity HIGH,CRITICAL <image>:$SHA_TAG
 ```
 
-Every image is scanned for vulnerabilities before it is signed or pushed. The scan runs with `--exit-code 0`, it records results without failing the build (the signature still certifies origin; the scan report is the evidence trail). The vulnerability database is downloaded once and reused across images with `--skip-db-update`.
+Every image is scanned for vulnerabilities before it is signed or pushed. The scan runs with `--exit-code 0`; it records results without failing the build. The signature still certifies origin; the scan report is the evidence trail. The vulnerability database is downloaded once and reused across images with `--skip-db-update`.
 
 ### 6. Push to DOCR
 
@@ -90,7 +90,7 @@ Only SHA-tagged images are pushed. `latest` never leaves the runner.
 cosign sign --key env://COSIGN_PRIVATE_KEY <image>:$SHA_TAG
 ```
 
-Every image is signed with the repository's Cosign **private key** (stored as the `COSIGN_PRIVATE_KEY` GitHub secret). The matching **public key** lives in the Kubernetes cluster inside the Kyverno `verify-image-signature` policy, so the cluster itself becomes the verifier:
+Every image is signed with the repository's Cosign **private key** (stored as the `COSIGN_PRIVATE_KEY` GitHub secret). The matching **public key** lives in the Kubernetes cluster inside the Kyverno `verify-image-signature` policy. The cluster itself becomes the verifier:
 
 ```
 CI signs with private key ──► image + signature in DOCR
@@ -111,7 +111,7 @@ git commit -m "Update images to sha-<commit>"
 git push
 ```
 
-For each of the 10 application services, the new SHA tag is written into `apps/boutique/kustomization.yaml` of the infrastructure repository. That single file is the **handoff point**: ArgoCD watches that repo, detects the change, and rolls the new images into the cluster.
+For each of the 10 application services, the new SHA tag is written into `apps/boutique/kustomization.yaml` of the infrastructure repository. That single file is the **handoff point**. ArgoCD watches that repo, detects the change, and rolls the new images into the cluster.
 
 ```
 ┌─────────────┐   push   ┌──────────┐   sync   ┌─────────┐
@@ -129,7 +129,7 @@ For each of the 10 application services, the new SHA tag is written into `apps/b
 - ❌ No `latest` tags
 - ❌ No secrets on the runner beyond the registry token and signing key
 
-Deployment is the platform's job. This separation of concerns is what makes the system safe to automate end-to-end.
+Deployment is the platform's job. This separation of concerns is what keeps the automation safe.
 
 ---
 
@@ -141,4 +141,4 @@ Deployment is the platform's job. This separation of concerns is what makes the 
 | `COSIGN_PRIVATE_KEY` | Sign images (origin + integrity) | Signing |
 | GitHub PAT (infra repo) | Push updated `kustomization.yaml` | Infra repo write |
 
-Each secret is narrowly scoped: the CI token does not have access to infrastructure, and the signing key is never exposed beyond the signing step.
+Each secret is scoped to a single task.
