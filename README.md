@@ -28,9 +28,9 @@ Developer push ──► Unit tests ──► Build ──► Trivy scan ──�
 
 **Immutable SHA tags, `latest` banned.** Every deployed image traces back to an exact commit, there is no ambiguity about what's actually running in production, and no risk of a `latest` tag silently changing underneath a running deployment.
 
-**Scan → sign → push.** Nothing gets a Cosign signature until Trivy has cleared it. A signature only means something if it's a guarantee the image was checked — signing first would make the signature meaningless.
+**Scan → sign → push.** Nothing gets a Cosign signature until Trivy has cleared it.
 
-**CI never touches the cluster.** This repo's pipeline ends the moment it writes a signed tag. Deployment is entirely [`online-boutique-doks-pf`](https://github.com/susu10-10/online-boutique-doks-pf)'s job via GitOps — keeping that boundary strict is what makes the two-repo split actually mean something, instead of just being organizational.
+**CI does not touch the cluster.** This repo's pipeline ends the moment it writes a signed tag. Deployment is entirely on the [`online-boutique-doks-pf`](https://github.com/susu10-10/online-boutique-doks-pf)'s job via GitOps, and keeping that boundary strict is what makes the two-repo split actually mean something, instead of just being organizational.
 
 ---
 
