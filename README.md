@@ -1,4 +1,8 @@
 # Online Boutique: Application Repository
+[![PR Checks](https://github.com/susu10-10/online-boutique-pf/actions/workflows/pr-checks.yml/badge.svg)](https://github.com/susu10-10/online-boutique-pf/actions/workflows/pr-checks.yml)
+[![Terraform](https://github.com/susu10-10/online-boutique-pf/actions/workflows/terraform.yml/badge.svg)](https://github.com/susu10-10/online-boutique-pf/actions/workflows/terraform.yml)
+[![Build and Push Boutique Containers](https://github.com/susu10-10/online-boutique-pf/actions/workflows/build.yml/badge.svg)](https://github.com/susu10-10/online-boutique-pf/actions/workflows/build.yml)
+[![Deploy Boutique Container](https://github.com/susu10-10/online-boutique-pf/actions/workflows/deploy.yml/badge.svg)](https://github.com/susu10-10/online-boutique-pf/actions/workflows/deploy.yml)
 
 An **11-microservice e-commerce platform** with a fully automated, security-hardened CI/CD pipeline. This repository holds the **application source and the pipeline** that produces signed, immutable container images, then hands them to a GitOps platform (ArgoCD) for deployment by updating the kustomization file.
 
