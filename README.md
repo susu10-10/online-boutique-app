@@ -1,8 +1,8 @@
 # Online Boutique: Application Repository
-[![PR Checks](https://github.com/susu10-10/online-boutique-pf/actions/workflows/pr-checks.yml/badge.svg)](https://github.com/susu10-10/online-boutique-pf/actions/workflows/pr-checks.yml)
-[![Terraform](https://github.com/susu10-10/online-boutique-pf/actions/workflows/terraform.yml/badge.svg)](https://github.com/susu10-10/online-boutique-pf/actions/workflows/terraform.yml)
-[![Build and Push Boutique Containers](https://github.com/susu10-10/online-boutique-pf/actions/workflows/build.yml/badge.svg)](https://github.com/susu10-10/online-boutique-pf/actions/workflows/build.yml)
-[![Deploy Boutique Container](https://github.com/susu10-10/online-boutique-pf/actions/workflows/deploy.yml/badge.svg)](https://github.com/susu10-10/online-boutique-pf/actions/workflows/deploy.yml)
+
+[![PR Scan Checks](https://github.com/susu10-10/online-boutique-app/actions/workflows/pr-checks.yml/badge.svg)](https://github.com/susu10-10/online-boutique-app/actions/workflows/pr-checks.yml)
+[![Build and Push Boutique Containers](https://github.com/susu10-10/online-boutique-app/actions/workflows/ci-main.yml/badge.svg)](https://github.com/susu10-10/online-boutique-app/actions/workflows/ci-main.yml)
+
 
 An **11-microservice e-commerce platform** with a fully automated, security-hardened CI/CD pipeline. This repository holds the **application source and the pipeline** that produces signed, immutable container images, then hands them to a GitOps platform (ArgoCD) for deployment by updating the kustomization file.
 
@@ -11,6 +11,26 @@ Developer push ──► Unit tests ──► Build ──► Trivy scan ──�
 ```
 
 > **This is the app half of a two-repo architecture.** The platform half lives in [`online-boutique-doks-pf`](https://github.com/susu10-10/online-boutique-doks-pf): Terraform-provisioned DOKS, ArgoCD GitOps, and Kyverno policy enforcement, including verification of the signatures this pipeline creates.
+
+---
+
+## Contents
+- [Design Decisions](#-design-decisions)
+- [Highlights](#highlights)
+- [Repository Layout](#repository-layout)
+- [Documentation](#documentation)
+- [Technologies](#technologies)
+- [Local Development](#local-development)
+
+---
+
+## Design Decisions
+
+**Immutable SHA tags, `latest` banned.** Every deployed image traces back to an exact commit — no ambiguity about what's actually running in production, and no risk of a `latest` tag silently changing underneath a running deployment.
+
+**Scan → sign → push, strictly ordered.** Nothing gets a Cosign signature until Trivy has cleared it. A signature only means something if it's a guarantee the image was checked — signing first would make the signature meaningless.
+
+**CI never touches the cluster.** This repo's pipeline ends the moment it writes a signed tag. Deployment is entirely [`online-boutique-doks-pf`](https://github.com/susu10-10/online-boutique-doks-pf)'s job via GitOps — keeping that boundary strict is what makes the two-repo split actually mean something, instead of just being organizational.
 
 ---
 
@@ -73,3 +93,6 @@ docker compose -f container-images/docker-compose.yml up -d
 # Simulate traffic (10 users, 1 req/s)
 docker compose -f container-images/docker-compose.yml --profile load-test run loadgenerator
 ```
+
+> **Part of a series exploring DevSecOps patterns across platforms:**
+> [`online-boutique-pf`](https://github.com/susu10-10/online-boutique-pf) · [`online-boutique-doks-pf`](https://github.com/susu10-10/online-boutique-doks-pf) · [`k8s-3tier-automation`](https://github.com/susu10-10/k8s-3tier-automation) · [`3tier-k8s-Hardening`](https://github.com/susu10-10/3tier-k8s-Hardening)
