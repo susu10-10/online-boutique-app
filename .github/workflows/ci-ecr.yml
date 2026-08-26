@@ -45,7 +45,7 @@ jobs:
       - name: Configure AWS Credentials via OIDC
         uses: aws-actions/configure-aws-credentials@v6
         with:
-          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/online-boutique-github-deploy-app-repo
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/online-boutique-AWS-EKS-github-deploy-app-repo
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Login to Amazon ECR
@@ -111,7 +111,7 @@ jobs:
       - name: Configure AWS Credentials Via OIDC
         uses: aws-actions/configure-aws-credentials@v6
         with:
-          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/online-boutique-github-deploy-app-repo
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/online-boutique-AWS-EKS-github-deploy-app-repo
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Get ECR Registry URI
