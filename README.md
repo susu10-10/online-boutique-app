@@ -2,6 +2,7 @@
 
 [![PR Scan Checks](https://github.com/susu10-10/online-boutique-app/actions/workflows/pr-checks.yml/badge.svg)](https://github.com/susu10-10/online-boutique-app/actions/workflows/pr-checks.yml)
 [![Build and Push Boutique Containers](https://github.com/susu10-10/online-boutique-app/actions/workflows/ci-main.yml/badge.svg)](https://github.com/susu10-10/online-boutique-app/actions/workflows/ci-main.yml)
+[![Build and Push Boutique Images to ECR](https://github.com/susu10-10/online-boutique-app/actions/workflows/ci-ecr.yml/badge.svg)](https://github.com/susu10-10/online-boutique-app/actions/workflows/ci-ecr.yml)
 
 
 An **11-microservice e-commerce platform** with a fully automated, security-hardened CI/CD pipeline. This repository holds the **application source and the pipeline** that produces signed, immutable container images, then hands them to a GitOps platform (ArgoCD) for deployment by updating the kustomization file.
