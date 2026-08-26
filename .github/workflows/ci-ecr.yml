@@ -68,7 +68,7 @@ jobs:
           echo "Navigating to $BUILD_DIR..."
           cd $BUILD_DIR
 
-          IMAGE_URI="$ECR_REGISTRY/online-boutique/$SERVICE:${{ env.SHA_TAG }}"
+          IMAGE_URI="$ECR_REGISTRY/online-boutique-eks/$SERVICE:${{ env.SHA_TAG }}"
 
           docker build -t $IMAGE_URI .
           
@@ -79,7 +79,7 @@ jobs:
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
         with:
-          image-ref: '${{ env.ECR_REGISTRY }}/online-boutique/${{ matrix.service }}:${{ env.SHA_TAG }}'
+          image-ref: '${{ env.ECR_REGISTRY }}/online-boutique-eks/${{ matrix.service }}:${{ env.SHA_TAG }}'
           format: 'sarif'
           output: 'trivy-results.sarif'
           severity: 'CRITICAL,HIGH'
@@ -95,7 +95,7 @@ jobs:
 
       - name: Sign ECR images
         run: |
-          IMAGE_URI="$ECR_REGISTRY/online-boutique/${{ matrix.service }}:${{ env.SHA_TAG }}"
+          IMAGE_URI="$ECR_REGISTRY/online-boutique-eks/${{ matrix.service }}:${{ env.SHA_TAG }}"
           echo "🔏 Signing Image: $IMAGE_URI"
           cosign sign --yes --key env://COSIGN_PRIVATE_KEY "$IMAGE_URI"
         env:
@@ -141,9 +141,9 @@ jobs:
             paymentservice productcatalogservice recommendationservice \
             shippingservice currencyservice loadgenerator
           do
-            echo "Updating $SERVICE to $REGISTRY/online-boutique/$SERVICE:$SHA_TAG"
+            echo "Updating $SERVICE to $REGISTRY/online-boutique-eks/$SERVICE:$SHA_TAG"
             kustomize edit set image \
-            $REGISTRY/online-boutique/$SERVICE=$REGISTRY/online-boutique/$SERVICE:${{ env.SHA_TAG }}
+            $REGISTRY/online-boutique-eks/$SERVICE=$REGISTRY/online-boutique-eks/$SERVICE:${{ env.SHA_TAG }}
           done
 
 
