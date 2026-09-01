@@ -1,0 +1,56 @@
+name: Terraform Destroy Images
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: 'Type "destroy" to confirm this deletes ECR'
+        required: true
+
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  AWS_REGION: us-east-1
+
+jobs:
+  guard:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Confirm destroy intent
+        run: |
+          if [ "${{ github.event.inputs.confirm }}" != "destroy" ]; then
+            echo "Confirmation string did not match 'destroy'. Aborting."
+            exit 1
+          fi
+
+  delete-ecr-images:
+    name: Delete Images from ECR
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        service: [ "cartservice", "currencyservice", "paymentservice", "shippingservice", "emailservice", "checkoutservice", "recommendationservice", "adservice", "loadgenerator", "frontend", "productcatalogservice" ]
+    steps:
+      - name: Configure AWS Credentials via OIDC
+        uses: aws-actions/configure-aws-credentials@v6
+        with:
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/online-boutique-eks-github-deploy-app-repo
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Delete All Images in Repository
+        run: |
+          REPOSITORY_NAME="online-boutique-eks/${{ matrix.service }}"
+          echo "💥 Fetching image digests for $REPOSITORY_NAME..."
+          
+          # Grab all image digests inside this specific ECR repository
+          IMAGE_DIGESTS=$(aws ecr list-images --repository-name "$REPOSITORY_NAME" --query 'imageIds[*]' --output json 2>/dev/null || echo "[]")
+          
+          if [ "$IMAGE_DIGESTS" != "[]" ] && [ ! -z "$IMAGE_DIGESTS" ]; then
+            echo "🔥 Deleting images for ${{ matrix.service }}..."
+            aws ecr batch-delete-image --repository-name "$REPOSITORY_NAME" --image-ids "$IMAGE_DIGESTS"
+          else
+            echo "ℹ️ No images found or repository doesn't exist for ${{ matrix.service }}."
+          fi
+
