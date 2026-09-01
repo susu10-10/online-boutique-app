@@ -91,7 +91,7 @@ jobs:
           sarif_file: 'trivy-results.sarif'
 
       - name: Install Cosign
-        uses: sigstore/cosign-installer@v4.1.0
+        uses: sigstore/cosign-installer@v4.1.2
 
       - name: Sign ECR images
         run: |
